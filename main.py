@@ -1,4 +1,5 @@
 import sys
+import json
 
 from PySide2 import QtGui, QtCore, QtWidgets
 from PySide2.QtWidgets import *
@@ -13,9 +14,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.setWindowTitle("To Do List")
         self.model = TodoModel()
+        self.load()
         self.todoView.setModel(self.model)
         self.addButton.pressed.connect(self.add)
-
         self.deleteButton.pressed.connect(self.delete)
         self.completeButton.pressed.connect(self.complete)
 
@@ -30,6 +31,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.model.layoutChanged.emit()
 
             self.todoEdit.setText("")
+            self.save()
 
     def delete(self):
         indexes = self.todoView.selectedIndexes()
@@ -39,6 +41,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             del self.model.todos[index.row()]
             self.model.layoutChanged.emit()
             self.todoView.clearSelection()
+            self.save()
 
     def complete(self):
         indexes = self.todoView.selectedIndexes()
@@ -51,6 +54,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             self.model.dataChanged.emit(index, index)
             self.todoView.clearSelection()
+            self.save()
+
+    def load(self):
+        try:
+            with open("data.json", "r") as f:
+                self.model.todos = json.load(f)
+        except Exception:
+            pass
+
+    def save(self):
+        with open("data.json", "w") as f:
+            data = json.dump(self.model.todos, f)
 
 
 if __name__ == "__main__":
